@@ -1,7 +1,3 @@
-#Yara Wael Anwar 120210266
-#Esraa Magdy ElHossiney 120210341
-#Salma Hany ElShishtawy 120210255
-
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
@@ -149,11 +145,15 @@ def insertRows(img, num):
     img_rotated = np.rot90(img_rotated, 3)
     return img_rotated, seams
 
-def markSeams(img, seams):
+def markSeams(img, seams, is_vertical=False):
     img_with_seams = np.uint8(img.copy())
     for seam in seams:
         for (row, col) in seam:
-            img_with_seams[row, col] = [0, 0, 255]  # Mark seam in red
+            if is_vertical:
+                # For vertical seams, swap row and col (since the image was rotated)
+                row, col = col, img.shape[0] - 1 - row  # Adjust for 90-degree rotation
+            if 0 <= row < img.shape[0] and 0 <= col < img.shape[1]:  # Check bounds
+                img_with_seams[row, col] = [0, 0, 255]  # Mark seam in red
     return img_with_seams
 
 # Load and process the image
@@ -171,24 +171,24 @@ if abs(num_seams) > 10000:
 # Perform resizing based on user input
 if resize_direction == "horizontal":
     if num_seams > 0:
-        output, seams = insertColumns(img, num_seams)  # Get the seams
+        output, seams = insertColumns(img, num_seams)
         output = cv2.cvtColor(np.uint8(output), cv2.COLOR_BGR2RGB)
-        img_with_seams = markSeams(img, seams)  # Mark the seams on the original image
+        img_with_seams = markSeams(img, seams, is_vertical=False)  # Horizontal seams
         img_with_seams = cv2.cvtColor(img_with_seams, cv2.COLOR_BGR2RGB)
     else:
         output, seams = carveColumns(img, -num_seams)
-        img_with_seams = markSeams(img, seams)
+        img_with_seams = markSeams(img, seams, is_vertical=False)  # Horizontal seams
         output = cv2.cvtColor(np.uint8(output), cv2.COLOR_BGR2RGB)
         img_with_seams = cv2.cvtColor(img_with_seams, cv2.COLOR_BGR2RGB)
 elif resize_direction == "vertical":
     if num_seams > 0:
-        output, seams = insertRows(img, num_seams)  # Get the seams
+        output, seams = insertRows(img, num_seams)
         output = cv2.cvtColor(np.uint8(output), cv2.COLOR_BGR2RGB)
-        img_with_seams = markSeams(img, seams)  # Mark the seams on the original image
+        img_with_seams = markSeams(img, seams, is_vertical=True)  # Vertical seams
         img_with_seams = cv2.cvtColor(img_with_seams, cv2.COLOR_BGR2RGB)
     else:
         output, seams = carveRows(img, -num_seams)
-        img_with_seams = markSeams(img, seams)
+        img_with_seams = markSeams(img, seams, is_vertical=True)  # Vertical seams
         output = cv2.cvtColor(np.uint8(output), cv2.COLOR_BGR2RGB)
         img_with_seams = cv2.cvtColor(img_with_seams, cv2.COLOR_BGR2RGB)
 else:
