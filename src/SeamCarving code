@@ -31,6 +31,7 @@ def carveColumns(img, num):
         img_gray = cv2.cvtColor(np.uint8(color_img), cv2.COLOR_BGR2GRAY)
         img_gray = np.double(img_gray)
         EnergyImg = calcEnergy(img_gray)
+        #using dynamic programming:
         cumsumEnergy = np.zeros(EnergyImg.shape)
         PathMatrix = np.zeros(EnergyImg.shape)
         rows, cols = EnergyImg.shape
@@ -65,7 +66,7 @@ def carveColumns(img, num):
                 currIndex -= 1
             elif PathMatrix[i, currIndex] == 2:
                 currIndex += 1
-
+        #reconstruct the image
         r, c = len(final_b), len(final_b[0])
         temp_final = np.zeros((r, c, 3))
         temp_final[:, :, 0] = final_b
